@@ -11,6 +11,10 @@ which implements the method of Weng *et al.*, *J. Synchrotron Rad.* **30**, 546�
 need even illumination: it uses the scattering from an amorphous sample, which depends only on
 the scattering angle. That makes it usable with a beam much smaller than the detector, as on MAXIMA.
 
+> **Measuring on MAXIMA?** Read the [MAXIMA measurement recipe](#maxima-measurement-recipe) at
+> the bottom of this page before collecting data. It covers the scatterer, beamstop, positions,
+> geometry and settings that differ from the synchrotron tutorial.
+
 ## Quick start
 
 ```bash
@@ -116,3 +120,49 @@ Actions workflow (`.github/workflows/tests.yml`) runs the same checks on every p
 
 The code in `calibration.py` and the notebook are adapted from the pyFAI tutorial (pyFAI is MIT
 licensed, © ESRF).
+
+## MAXIMA measurement recipe
+
+The method was designed for transmission diffraction, which is how MAXIMA works: the direct beam
+lands on the EIGER2, which sits about 85 mm from the sample and is tilted about 3.6°. The tutorial
+data come from a synchrotron, where the detector itself was moved between exposures. On MAXIMA
+the detector and beamstop are fixed and only the sample moves, so a few things are done
+differently.
+
+1. **Scatterer: a flat plate, square to the beam.** A tilted plate absorbs more on one side than
+   the other, and that unevenness ends up in the flat-field. Don't use a capillary.
+2. **Low-element material that does not fluoresce above the 12.1 keV threshold.** Glassy carbon,
+   acrylic (PMMA), Kapton or ordinary glass are suitable. Avoid anything containing elements whose
+   fluorescence lines lie above about 12 keV: that would add a second photon energy to the signal.
+3. **Mask the beamstop.** On MAXIMA the beamstop shadow always covers the same pixels, so moving
+   between positions cannot fill it in, and the automatic mask (negative pixels plus the DECTRIS
+   `pixel_mask`) does not include it. Shadowed pixels must be masked explicitly; the notebook
+   does not do this automatically yet.
+4. **Positions: vary the sample-to-detector distance, not the sideways position.** Moving the
+   sample sideways leaves the pattern in the same place on the detector, because the pattern
+   stays centred on the beam. Changing the distance moves the rings inwards or outwards. One
+   position already gives a full map. Extra positions average down the noise and remove artefacts
+   that belong to one setup (holder scatter, stray crystallites in the scatterer). Use at least
+   `MIN_VALID` positions (default 5), or lower `MIN_VALID` to match.
+5. **Geometry: give every position a `.poni`** (e.g. from a calibrant exposure at that distance,
+   as produced by the MAXIMA Dagster pipeline) **or a calibrant image** for refinement. Keep the
+   detector rotations free in the fit (`fix_rotations=False`, the MAXIMA default), because the
+   detector is tilted.
+6. **Counts: expose long.** The per-pixel precision is about 1/√counts. Aim for ~2,500 counts
+   per pixel (~2 %) to find bad pixels and check the factory flatfield, and ~10,000 (~1 %) for a
+   correction map. Several exposures at the same position can be summed.
+7. **Settings: same source, voltage, current, energy and threshold as the experiments the
+   correction is for.** The In source is not a single energy (Ga lines are removed by the
+   threshold, but some of the continuous spectrum gets through). The flat-field you measure is
+   the detector's response to that spectrum, which is what your real data see. Re-measure after
+   any change to the source, threshold, detector firmware or geometry, and about quarterly.
+8. **Polarization: `0.0`** (unpolarized lab source). Check it with `guess_polarization` in
+   section 6 of the notebook.
+9. **Remember it is a residual correction.** The EIGER2 already applies DECTRIS's factory
+   flatfield, so this map corrects what that leaves behind. In processing, apply it with
+   `flat=` **together with** `mask=pixel_mask != 0`.
+10. **Check before promoting.** In the quality check (section 9) the *pixel-scale* spread should
+    drop to near the counting-noise level. Look at the merged map (section 9) for structure that
+    follows the beamstop, holder or sample edges rather than the detector chips. Only then publish
+    with `PROMOTE = True`.
+
