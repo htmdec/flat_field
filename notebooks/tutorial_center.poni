@@ -1,0 +1,14 @@
+# Centre-position geometry for the pyFAI flat-field tutorial (ESRF ID31, Pilatus 2M CdTe, 75 keV).
+# Values are the refined centre geometry printed in the tutorial (detector perpendicular to the beam).
+# The notebook refines this further on the AgBh calibrant rings.
+# Nota: C-Order, 1 refers to the Y axis, 2 to the X axis
+poni_version: 2.1
+Detector: PilatusCdTe2M
+Detector_config: {"pixel1": 0.000172, "pixel2": 0.000172, "orientation": 3}
+Distance: 6.402487
+Poni1: 0.1642128
+Poni2: 0.1264052
+Rot1: 0
+Rot2: 0
+Rot3: 0
+Wavelength: 1.6531226457760035e-11

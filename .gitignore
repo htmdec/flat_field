@@ -1,0 +1,22 @@
+# Python / uv
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# secrets
+.env
+
+# calibration outputs and downloaded data
+output/
+notebooks/output/
+*.edf
+*.npt
+/tmp/
