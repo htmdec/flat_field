@@ -110,10 +110,9 @@ tests/                                  unit tests (synthetic gain recovery, EIG
 
 ## Development
 
-```bash
-uv run pytest
-uv run ruff check src tests
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md). In short: `uv sync`, then `uv run nbstripout --install`
+once per clone, and check with `uv run ruff check src tests` and `uv run pytest`. A GitHub
+Actions workflow (`.github/workflows/tests.yml`) runs the same checks on every pull request.
 
 The code in `calibration.py` and the notebook are adapted from the pyFAI tutorial (pyFAI is MIT
 licensed, © ESRF).

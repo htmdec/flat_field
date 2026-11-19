@@ -1,0 +1,39 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen   # pyFAI's calibration code imports Qt; no display on CI
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Install from uv.lock (fails if the lock file is out of date)
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run ruff check src tests
+
+      - name: Notebook outputs are stripped
+        run: uv run nbstripout --verify --keep-id notebooks/*.ipynb
+
+      - name: Tests
+        run: uv run pytest -q
